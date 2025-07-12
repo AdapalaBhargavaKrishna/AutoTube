@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="#3B82F6"/> <!-- Tailwind blue-500 -->
+  <path d="M20 44L32 20L44 44H38L32 32L26 44H20Z" fill="white"/> <!-- Stylized A -->
+  <path d="M18 50 C22 46, 42 46, 46 50" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+</svg>
