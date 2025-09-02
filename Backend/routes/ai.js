@@ -1,6 +1,6 @@
-import express from 'express';
-import axios from 'axios';
-import dotenv from 'dotenv';
+import express from "express";
+import axios from "axios";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -9,17 +9,23 @@ const api_key = process.env.GROQ_API_KEY;
 const base_url = process.env.BASE_URL;
 const model = process.env.GROQ_MODEL;
 
-router.post('/ai', async (req, res) => {
+router.post("/ai", async (req, res) => {
   const { transcript, summaryLength, quickQuizEnabled } = req.body;
 
   if (!transcript || !summaryLength) {
-    return res.status(400).json({ msg: "Missing required fields: transcript or summaryLength" });
+    return res
+      .status(400)
+      .json({ msg: "Missing required fields: transcript or summaryLength" });
   }
 
   const prompt = `
 You are a helpful summarizer. Generate a ${summaryLength.toLowerCase()} summary of the transcript below.
 Then list 5 key points that highlight the most important takeaways.
-${quickQuizEnabled ? "Also generate 3 QnAs (question and answer pairs) based on the content." : ""}
+${
+  quickQuizEnabled
+    ? "Also generate 3 QnAs (question and answer pairs) based on the content."
+    : ""
+}
 
 Return them in this format:
 
@@ -33,7 +39,11 @@ Return them in this format:
 4. ...
 5. ...
 
-${quickQuizEnabled ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3: ..." : ""}
+${
+  quickQuizEnabled
+    ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3: ..."
+    : ""
+}
 `;
 
   try {
@@ -44,19 +54,19 @@ ${quickQuizEnabled ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3:
         messages: [
           {
             role: "system",
-            content: prompt
+            content: prompt,
           },
           {
             role: "user",
-            content: transcript
-          }
-        ]
+            content: transcript,
+          },
+        ],
       },
       {
         headers: {
           Authorization: `Bearer ${api_key}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
@@ -65,8 +75,9 @@ ${quickQuizEnabled ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3:
       return res.status(500).json({ msg: "Invalid response from Groq" });
     }
 
-    const [rawSummary = "", rawKeyPoints = "", rawQnAs = ""] = raw
-      .split(/(?=\*\*Key Points\*\*)|(?=\*\*QnAs\*\*)/);
+    const [rawSummary = "", rawKeyPoints = "", rawQnAs = ""] = raw.split(
+      /(?=\*\*Key Points\*\*)|(?=\*\*QnAs\*\*)/
+    );
 
     const summary = rawSummary.replace("**Summary**", "").trim();
 
@@ -74,7 +85,7 @@ ${quickQuizEnabled ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3:
       .replace("**Key Points**", "")
       .trim()
       .split(/\n+/)
-      .map(line => line.replace(/^\d+\.\s*/, "").trim())
+      .map((line) => line.replace(/^\d+\.\s*/, "").trim())
       .filter(Boolean);
 
     const qna = quickQuizEnabled
@@ -83,11 +94,11 @@ ${quickQuizEnabled ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3:
           .trim()
           .split(/Q\d+:/)
           .slice(1)
-          .map(block => {
+          .map((block) => {
             const [q, a] = block.split(/A\d+:/);
             return {
               question: q?.trim() || "",
-              answer: a?.trim() || ""
+              answer: a?.trim() || "",
             };
           })
       : [];
@@ -95,11 +106,13 @@ ${quickQuizEnabled ? "**QnAs**\nQ1: ...\nA1: ...\nQ2: ...\nA2: ...\nQ3: ...\nA3:
     res.json({
       summary,
       keyPoints,
-      qna
+      qna,
     });
-
   } catch (error) {
-    console.error("Groq summarization error:", error.response?.data || error.message);
+    console.error(
+      "Groq summarization error:",
+      error.response?.data || error.message
+    );
     res.status(500).json({ msg: "Failed to summarize", error: error.message });
   }
 });
